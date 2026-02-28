@@ -4,6 +4,8 @@ import { Upload, FileAudio, CheckCircle, Loader2, RotateCcw } from "lucide-react
 import { HealthGauge } from "../components/dashboard/HealthGauge";
 import { RiskIndicator } from "../components/dashboard/RiskIndicator";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 type AnalysisResult = {
   healthScore: number;
@@ -20,6 +22,7 @@ const UploadAnalyze = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const { user } = useAuth();
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -33,18 +36,39 @@ const UploadAnalyze = () => {
   };
 
   const handleAnalyze = async () => {
-    if (!file || !machineType) return;
+    if (!file || !machineType || !user) return;
     setAnalyzing(true);
     setResult(null);
-    // Mock API call
-    await new Promise((r) => setTimeout(r, 2500));
+
+    // Upload audio file to storage
+    let audioPath = "";
+    const filePath = `${user.id}/${Date.now()}_${file.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from("audio-uploads")
+      .upload(filePath, file);
+    if (!uploadError) {
+      audioPath = filePath;
+    }
+
+    // Mock ML inference (replace with real API later)
+    await new Promise((r) => setTimeout(r, 2000));
     const mockScore = Math.floor(Math.random() * 60) + 40;
-    setResult({
-      healthScore: mockScore,
-      riskLevel: mockScore >= 70 ? "healthy" : mockScore >= 40 ? "warning" : "critical",
-      faultType: mockScore >= 70 ? "No Fault Detected" : mockScore >= 40 ? "Bearing Wear" : "Shaft Misalignment",
-      confidence: parseFloat((Math.random() * 15 + 82).toFixed(1)),
+    const riskLevel: "healthy" | "warning" | "critical" = mockScore >= 70 ? "healthy" : mockScore >= 40 ? "warning" : "critical";
+    const faultType = mockScore >= 70 ? "No Fault Detected" : mockScore >= 40 ? "Bearing Wear" : "Shaft Misalignment";
+    const confidence = parseFloat((Math.random() * 15 + 82).toFixed(1));
+
+    // Save to database
+    await supabase.from("audio_analysis_history").insert({
+      user_id: user.id,
+      machine_type: machineType,
+      uploaded_audio_path: audioPath,
+      health_score: mockScore,
+      risk_level: riskLevel,
+      fault_type_prediction: faultType,
+      confidence_score: confidence,
     });
+
+    setResult({ healthScore: mockScore, riskLevel: riskLevel, faultType, confidence });
     setAnalyzing(false);
   };
 
@@ -109,12 +133,9 @@ const UploadAnalyze = () => {
         >
           {analyzing ? (
             <span className="flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Analyzing Audio...
+              <Loader2 className="w-4 h-4 animate-spin" /> Analyzing Audio...
             </span>
-          ) : (
-            "Analyze Audio"
-          )}
+          ) : "Analyze Audio"}
         </Button>
       </div>
 
@@ -175,8 +196,7 @@ const UploadAnalyze = () => {
             </div>
 
             <Button onClick={handleReset} variant="outline" className="w-full rounded-xl border-border hover:bg-secondary">
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Analyze Another File
+              <RotateCcw className="w-4 h-4 mr-2" /> Analyze Another File
             </Button>
           </motion.div>
         )}
