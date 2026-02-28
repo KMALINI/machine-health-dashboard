@@ -14,7 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audio_analysis_history: {
+        Row: {
+          analysis_date: string
+          confidence_score: number
+          fault_type_prediction: string
+          health_score: number
+          id: string
+          machine_type: string
+          risk_level: string
+          uploaded_audio_path: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis_date?: string
+          confidence_score?: number
+          fault_type_prediction?: string
+          health_score?: number
+          id?: string
+          machine_type?: string
+          risk_level?: string
+          uploaded_audio_path?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis_date?: string
+          confidence_score?: number
+          fault_type_prediction?: string
+          health_score?: number
+          id?: string
+          machine_type?: string
+          risk_level?: string
+          uploaded_audio_path?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          organization: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          organization?: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          organization?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
