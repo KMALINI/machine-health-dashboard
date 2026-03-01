@@ -3,6 +3,7 @@ import { Activity, Heart, AlertTriangle, FileText } from "lucide-react";
 import { HealthGauge } from "../components/dashboard/HealthGauge";
 import { RiskIndicator } from "../components/dashboard/RiskIndicator";
 import { PerformanceChart } from "../components/dashboard/PerformanceChart";
+import AIChatbot from "@/components/AIChatbot";
 
 const cards = [
   { title: "Active Machines", value: "24", icon: Activity, accent: "text-accent" },
